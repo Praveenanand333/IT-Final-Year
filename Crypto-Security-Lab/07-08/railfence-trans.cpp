@@ -62,10 +62,10 @@ string decryptRailFence(string cipher, int key)
 }
 int main()
 {
-	cout << encryptRailFence("attackatonce", 2) << endl;
-	cout << encryptRailFence("defendtheeastwall", 3) << endl;
-	cout << decryptRailFence("atcaoctaktne",2) << endl;
-	cout << decryptRailFence("dnetleedheswlftaa",3) << endl;
+	cout << encryptRailFence("attack at once", 2) << endl;
+	cout << encryptRailFence("defend the eastwall", 3) << endl;
+	cout << decryptRailFence("atc toctaka ne",2) << endl;
+	cout << decryptRailFence("dnhaaeedteeswlf  tl",3) << endl;
 
 	return 0;
 }

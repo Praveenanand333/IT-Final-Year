@@ -63,7 +63,7 @@ string decrypt(const string &ciphertext, const string &key) {
 }
 
 int main() {
-    string plaintext = "Thisisasecretmessage";
+    string plaintext = "This-is-a-secretmessage";
     string key = "KEY";
 
     string encrypted = encrypt(plaintext, key);

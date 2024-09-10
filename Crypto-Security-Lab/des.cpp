@@ -162,7 +162,33 @@ void generate_keys(string key, vector<string> &rkb, vector<string> &rk) {
         rk.push_back(bin2hex(round_key));
     }
 }
+string feistel(string pt, vector<string> rkb) {
+    pt = permute(pt, initial_perm, 64);  // Initial Permutation
+    string left = pt.substr(0, 32);
+    string right = pt.substr(32, 32);
 
+    for (int i = 0; i < 16; i++) {
+        string right_expanded = permute(right, exp_d, 48);  // Expansion D-box
+        string x = xor_(rkb[i], right_expanded);            // XOR with round key
+        
+        // Apply S-boxes
+        string op = "";
+        for (int j = 0; j < 8; j++) {
+            int row = bin2dec(x.substr(j * 6, 1) + x.substr(j * 6 + 5, 1));
+            int col = bin2dec(x.substr(j * 6 + 1, 4));
+            int val = sbox[j][row][col];
+            op += dec2bin(val);
+        }
+
+        op = permute(op, per, 32);           // Permutation P
+        x = xor_(op, left);                  // XOR with left half
+        left = right;                        // Swap left and right
+        right = x;
+    }
+
+    string combined = right + left;          // Combine halves
+    return permute(combined, final_perm, 64);  // Final Permutation
+}
 int main() {
 
     string key = "AABB09182736CCDD";
@@ -171,10 +197,16 @@ int main() {
     vector<string> rkb; 
     vector<string> rk;  
     generate_keys(key, rkb, rk);
-    cout << "Round keys in hexadecimal:\n";
-    for (int i = 0; i < rk.size(); i++) {
-        cout << "Round " << i + 1 << ": " << rk[i] << endl;
-    }
+    cout << "Encryption:\n";
+    string cipher_text = feistel(pt, rkb);  // Encrypt
+    cout << "Cipher Text: " << bin2hex(cipher_text) << endl;
+
+    // Decryption - use round keys in reverse order
+    reverse(rkb.begin(), rkb.end());
+    cout << "Decryption:\n";
+    string decrypted_text = feistel(cipher_text, rkb);  // Decrypt
+    cout << "Decrypted Text: " << bin2hex(decrypted_text) << endl;
+
 
     return 0;
 }

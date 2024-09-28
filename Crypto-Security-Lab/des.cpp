@@ -3,6 +3,7 @@
 #include <vector>
 #include <bitset>
 #include <cmath>
+#include<bits/stdc++.h>
 using namespace std;
 string hex2bin(string s) {
     string mp[16] = {"0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111",
@@ -16,6 +17,16 @@ string hex2bin(string s) {
     }
     return bin;
 }
+int bin2dec(string binary) {
+    int decimal = 0, base = 1;
+    int len = binary.length();
+    for (int i = len - 1; i >= 0; i--) {
+        if (binary[i] == '1')
+            decimal += base;
+        base = base * 2;
+    }
+    return decimal;
+}
 string bin2hex(string s) {
     string mp[16] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
     string hex = "";
@@ -27,16 +38,7 @@ string bin2hex(string s) {
     return hex;
 }
 
-int bin2dec(string binary) {
-    int decimal = 0, base = 1;
-    int len = binary.length();
-    for (int i = len - 1; i >= 0; i--) {
-        if (binary[i] == '1')
-            decimal += base;
-        base = base * 2;
-    }
-    return decimal;
-}
+
 
 string dec2bin(int num) {
     string bin = bitset<4>(num).to_string();
@@ -141,6 +143,7 @@ void generate_keys(string key, vector<string> &rkb, vector<string> &rk) {
                         46, 38, 30, 22, 14, 6, 61, 53,
                         45, 37, 29, 21, 13, 5, 28, 20,
                         12, 4};
+    //discard 8 th bits and permute
     key = permute(key, keyp, 56);
     string left = key.substr(0, 28);
     string right = key.substr(28, 28);
@@ -152,6 +155,8 @@ void generate_keys(string key, vector<string> &rkb, vector<string> &rk) {
                             41, 52, 31, 37, 47, 55, 30, 40,
                             51, 45, 33, 48, 44, 49, 39, 56,
                             34, 53, 46, 42, 50, 36, 29, 32};
+                            //48
+                            //discard 9 th bit
 
     for (int i = 0; i < 16; i++) {
         left = shift_left(left, shift_table[i]);
@@ -163,16 +168,16 @@ void generate_keys(string key, vector<string> &rkb, vector<string> &rk) {
     }
 }
 string feistel(string pt, vector<string> rkb) {
-    pt = permute(pt, initial_perm, 64);  // Initial Permutation
+    pt = permute(pt, initial_perm, 64); 
     string left = pt.substr(0, 32);
     string right = pt.substr(32, 32);
 
     for (int i = 0; i < 16; i++) {
-        string right_expanded = permute(right, exp_d, 48);  // Expansion D-box
-        string x = xor_(rkb[i], right_expanded);            // XOR with round key
+        string right_expanded = permute(right, exp_d, 48);  
+        string x = xor_(rkb[i], right_expanded);            
         
-        // Apply S-boxes
         string op = "";
+        //for 8 s-box
         for (int j = 0; j < 8; j++) {
             int row = bin2dec(x.substr(j * 6, 1) + x.substr(j * 6 + 5, 1));
             int col = bin2dec(x.substr(j * 6 + 1, 4));
@@ -180,32 +185,87 @@ string feistel(string pt, vector<string> rkb) {
             op += dec2bin(val);
         }
 
-        op = permute(op, per, 32);           // Permutation P
-        x = xor_(op, left);                  // XOR with left half
-        left = right;                        // Swap left and right
+        op = permute(op, per, 32);         
+        x = xor_(op, left);             
+        left = right;         
         right = x;
     }
 
-    string combined = right + left;          // Combine halves
-    return permute(combined, final_perm, 64);  // Final Permutation
+    string combined = right + left;       
+    return permute(combined, final_perm, 64); 
+}
+string decToHexa(int n)
+{
+    char hexaDeciNum[100];
+    int i = 0;
+    while (n != 0) {
+        int temp = 0;
+        temp = n % 16;
+
+        if (temp < 10) {
+            hexaDeciNum[i] = temp + 48;
+            i++;
+        }
+        else {
+            hexaDeciNum[i] = temp + 55;
+            i++;
+        }
+ 
+        n = n / 16;
+    }
+ 
+    string ans = "";
+    for (int j = i - 1; j >= 0; j--)
+        ans += hexaDeciNum[j];
+ 
+    return ans;
+}
+string ASCIItoHEX(string ascii)
+{
+    string hex = "";
+    for (int i = 0; i < ascii.length(); i++) {
+        char ch = ascii[i];
+        int tmp = (int)ch;
+        string part = decToHexa(tmp);
+        hex += part;
+    }
+
+    return hex;
+}
+string hexToASCII(string hex)
+{
+    string ascii = "";
+    for (size_t i = 0; i < hex.length(); i += 2)
+    {
+        string part = hex.substr(i, 2);
+        char ch = stoul(part, nullptr, 16);
+        ascii += ch;
+    }
+    return ascii;
 }
 int main() {
 
     string key = "AABB09182736CCDD";
     key = hex2bin(key);
-
+    //cout<<key.size();
+    //string pt=hex2bin("123ABC567DEF8900");
+    string pt=hex2bin(ASCIItoHEX("hellowor"));
+    //cout<<":"<<pt.size()<<":";
+    //cout<<pt<<":"<<key;
+    //string temp="1110";
+    //cout<<stoi(temp,0,2)<<":"<<bin2dec(temp);
+    //cout<<hexToASCII(ASCIItoHEX("hello"));
     vector<string> rkb; 
     vector<string> rk;  
     generate_keys(key, rkb, rk);
     cout << "Encryption:\n";
-    string cipher_text = feistel(pt, rkb);  // Encrypt
-    cout << "Cipher Text: " << bin2hex(cipher_text) << endl;
+    string cipher_text = feistel(pt, rkb);
+    cout << "Cipher Text: " << hexToASCII(bin2hex(cipher_text)) << endl;
 
-    // Decryption - use round keys in reverse order
     reverse(rkb.begin(), rkb.end());
     cout << "Decryption:\n";
-    string decrypted_text = feistel(cipher_text, rkb);  // Decrypt
-    cout << "Decrypted Text: " << bin2hex(decrypted_text) << endl;
+    string decrypted_text = feistel(cipher_text, rkb); 
+    cout << "Decrypted Text: " << hexToASCII(bin2hex(decrypted_text)) << endl;
 
 
     return 0;

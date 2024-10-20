@@ -39,7 +39,7 @@ public:
     }
 
     string decrypt(const string& ciphertext) {
-        return encrypt(ciphertext); // RC4 is symmetric, so encryption and decryption are the same
+        return encrypt(ciphertext);
     }
 };
 
@@ -50,7 +50,7 @@ int main() {
 
     string plaintext;
     cout << "Enter the plaintext: ";
-    cin.ignore(); // To ignore the newline character left in the buffer
+    cin.ignore(); 
     getline(cin, plaintext);
 
     RC4 rc4(key);

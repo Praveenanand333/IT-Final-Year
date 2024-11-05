@@ -55,11 +55,6 @@ int chineseRemainder(const vector<int>& num, const vector<int>& rem, int n) {
 }
 
 int main() {
-    
-    
-    
-    
-    
     vector<int> num = {3, 5, 7};  
     vector<int> rem = {2, 3, 2};  
     

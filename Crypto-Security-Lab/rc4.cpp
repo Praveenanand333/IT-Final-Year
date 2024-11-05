@@ -52,7 +52,7 @@ int main() {
     string ciphertext = RC4(key, plaintext);
     cout << "Ciphertext: ";
     for (unsigned char c : ciphertext) {
-        printf("%02X ", c);  
+        cout<<c;
     }
     cout << endl;
 

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-using namespace std;
+using namespace std;    
 
 int modInverse(int a, int m) {
     int m0 = m, t, q;

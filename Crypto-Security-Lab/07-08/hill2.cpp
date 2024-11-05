@@ -2,7 +2,7 @@
 #include <vector>
 using namespace std;
 
-// Function to create the 2x2 key matrix from the key string
+
 void getKeyMatrix(const string& key, vector<vector<int>>& keyMatrix) {
     int k = 0;
     for (int i = 0; i < 2; i++) {
@@ -13,25 +13,25 @@ void getKeyMatrix(const string& key, vector<vector<int>>& keyMatrix) {
     }
 }
 
-// Function to calculate the modular inverse of a number mod 26
+
 int modInverse(int num, int mod) {
     num = num % mod;
     for (int x = 1; x < mod; x++) {
         if ((num * x) % mod == 1)
             return x;
     }
-    return -1; // No inverse if returned value is -1
+    return -1; 
 }
 
-// Function to find the inverse of the 2x2 key matrix
+
 bool inverseKeyMatrix(vector<vector<int>>& keyMatrix, vector<vector<int>>& invKeyMatrix) {
     int det = (keyMatrix[0][0] * keyMatrix[1][1] - keyMatrix[0][1] * keyMatrix[1][0]) % 26;
-    if (det < 0) det += 26;  // Make sure determinant is positive
+    if (det < 0) det += 26;  
 
-    int detInv = modInverse(det, 26);  // Find modular inverse of determinant
-    if (detInv == -1) return false; // Inverse does not exist
+    int detInv = modInverse(det, 26);  
+    if (detInv == -1) return false; 
 
-    // Calculate the inverse key matrix
+    
     invKeyMatrix[0][0] = (keyMatrix[1][1] * detInv) % 26;
     invKeyMatrix[0][1] = (-keyMatrix[0][1] * detInv + 26) % 26;
     invKeyMatrix[1][0] = (-keyMatrix[1][0] * detInv + 26) % 26;
@@ -40,7 +40,7 @@ bool inverseKeyMatrix(vector<vector<int>>& keyMatrix, vector<vector<int>>& invKe
     return true;
 }
 
-// Function for encryption
+
 void encrypt(vector<vector<int>>& cipherMatrix, const vector<vector<int>>& keyMatrix, const vector<vector<int>>& messageVector) {
     for (int i = 0; i < 2; i++) {
         cipherMatrix[i][0] = 0;
@@ -51,7 +51,7 @@ void encrypt(vector<vector<int>>& cipherMatrix, const vector<vector<int>>& keyMa
     }
 }
 
-// Function for decryption
+
 void decrypt(vector<vector<int>>& decryptedMatrix, const vector<vector<int>>& invKeyMatrix, const vector<vector<int>>& cipherMatrix) {
     for (int i = 0; i < 2; i++) {
         decryptedMatrix[i][0] = 0;
@@ -62,17 +62,17 @@ void decrypt(vector<vector<int>>& decryptedMatrix, const vector<vector<int>>& in
     }
 }
 
-// Hill Cipher encryption and decryption for 2x2 key matrix
+
 void HillCipher(const string& message, const string& key) {
     vector<vector<int>> keyMatrix(2, vector<int>(2));
     getKeyMatrix(key, keyMatrix);
 
-    // Prepare message vector (2x1)
+    
     vector<vector<int>> messageVector(2, vector<int>(1));
     messageVector[0][0] = (message[0]) % 65;
     messageVector[1][0] = (message[1]) % 65;
 
-    // Encrypt the message
+    
     vector<vector<int>> cipherMatrix(2, vector<int>(1));
     encrypt(cipherMatrix, keyMatrix, messageVector);
 
@@ -81,14 +81,14 @@ void HillCipher(const string& message, const string& key) {
         CipherText += cipherMatrix[i][0] + 65;
     cout << "Ciphertext: " << CipherText << endl;
 
-    // Prepare inverse key matrix for decryption
+    
     vector<vector<int>> invKeyMatrix(2, vector<int>(2));
     if (!inverseKeyMatrix(keyMatrix, invKeyMatrix)) {
         cout << "Inverse key matrix does not exist. Decryption not possible." << endl;
         return;
     }
 
-    // Decrypt the message
+    
     vector<vector<int>> decryptedMatrix(2, vector<int>(1));
     decrypt(decryptedMatrix, invKeyMatrix, cipherMatrix);
 
@@ -99,8 +99,8 @@ void HillCipher(const string& message, const string& key) {
 }
 
 int main() {
-    string message = "AI"; // 2-letter message
-    string key = "BHAD";   // 4-letter key for 2x2 matrix
+    string message = "AI"; 
+    string key = "BHAD";   
 
     cout << "Message: " << message << endl;
     cout << "Key: " << key << endl;

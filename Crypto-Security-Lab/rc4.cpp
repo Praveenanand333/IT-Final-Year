@@ -2,38 +2,27 @@
 #include <vector>
 using namespace std;
 
-
 void KSA(vector<int> &S, const string &key) {
     int keyLength = key.size();
     int j = 0;
-
-    
     for (int i = 0; i < 256; i++) {
         S[i] = i;
     }
-
-    
     for (int i = 0; i < 256; i++) {
         j = (j + S[i] + key[i % keyLength]) % 256;
         swap(S[i], S[j]);
     }
 }
-
-
 string PRGA(vector<int> &S, const string &data) {
     int i = 0, j = 0;
     string output = data;
-
     for (int k = 0; k < data.size(); k++) {
         i = (i + 1) % 256;
         j = (j + S[i]) % 256;
         swap(S[i], S[j]);
-
-        
         int keyStream = S[(S[i] + S[j]) % 256];
         output[k] = data[k] ^ keyStream;
     }
-
     return output;
 }
 

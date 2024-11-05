@@ -1,68 +1,110 @@
-
-
 #include <iostream>
+#include <vector>
 using namespace std;
 
-
-void inverseMatrix(int (&matrix)[2][2]){
-    int a = matrix[0][0];
-    int b = matrix[0][1];
-    int c = matrix[1][0];
-    int d = matrix[1][1];
-    int det = (a*d) - (b*c);
-    matrix[0][0] = (((d+26)%26)*3)%26;
-    matrix[0][1] = (((-b+26)%26)*3)%26;
-    matrix[1][0] = (((-c+26)%26)*3)%26;
-    matrix[1][1] = (((a+26)%26)*3)%26;
+// Function to create the 2x2 key matrix from the key string
+void getKeyMatrix(const string& key, vector<vector<int>>& keyMatrix) {
+    int k = 0;
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            keyMatrix[i][j] = (key[k]) % 65;
+            k++;
+        }
+    }
 }
 
-int main(){
-    string key, plainText, encryptedText;
-    plainText = "";
-
-    cout << endl << "NOTE: KINDLY USE UPPERCASE THROUGHOUT THE PROGRAM !!!" << endl << endl;
-    int shift=65;
-
-    cout << "Enter 4 letter keyword : ";
-    cin >> key;
-    while(key.length()!=4){
-        cout << "Enter 4 letter keyword : ";
-        cin >> key;
+// Function to calculate the modular inverse of a number mod 26
+int modInverse(int num, int mod) {
+    num = num % mod;
+    for (int x = 1; x < mod; x++) {
+        if ((num * x) % mod == 1)
+            return x;
     }
+    return -1; // No inverse if returned value is -1
+}
 
-    cout << "Enter Encrypted Text: ";
-    cin >> encryptedText;
+// Function to find the inverse of the 2x2 key matrix
+bool inverseKeyMatrix(vector<vector<int>>& keyMatrix, vector<vector<int>>& invKeyMatrix) {
+    int det = (keyMatrix[0][0] * keyMatrix[1][1] - keyMatrix[0][1] * keyMatrix[1][0]) % 26;
+    if (det < 0) det += 26;  // Make sure determinant is positive
 
-    for(int i=0; i<key.length(); i++){
-        key[i]-=shift;
-    }
-    for(int i=0; i<encryptedText.length(); i++){
-        encryptedText[i]-=shift;
-    }
+    int detInv = modInverse(det, 26);  // Find modular inverse of determinant
+    if (detInv == -1) return false; // Inverse does not exist
 
-    int keyMatrix[2][2] = {{0,0},{0,0}};
-    int ptr = 0;
-    for(int i=0; i<2; i++){
-        for(int j=0; j<2; j++){
-            keyMatrix[j][i] = key[ptr++];
+    // Calculate the inverse key matrix
+    invKeyMatrix[0][0] = (keyMatrix[1][1] * detInv) % 26;
+    invKeyMatrix[0][1] = (-keyMatrix[0][1] * detInv + 26) % 26;
+    invKeyMatrix[1][0] = (-keyMatrix[1][0] * detInv + 26) % 26;
+    invKeyMatrix[1][1] = (keyMatrix[0][0] * detInv) % 26;
+
+    return true;
+}
+
+// Function for encryption
+void encrypt(vector<vector<int>>& cipherMatrix, const vector<vector<int>>& keyMatrix, const vector<vector<int>>& messageVector) {
+    for (int i = 0; i < 2; i++) {
+        cipherMatrix[i][0] = 0;
+        for (int j = 0; j < 2; j++) {
+            cipherMatrix[i][0] += keyMatrix[i][j] * messageVector[j][0];
         }
+        cipherMatrix[i][0] = cipherMatrix[i][0] % 26;
     }
+}
 
-    inverseMatrix(keyMatrix);
-
-    if(encryptedText.length()%2==1) encryptedText = encryptedText+"X";
-    for(int i=0; i<encryptedText.length(); i+=2){
-        int temp[] = {encryptedText[i], encryptedText[i+1]};
-        for(int i=0; i<2; i++){
-            int sum = 0;
-            for(int j=0; j<2; j++){
-                sum+=keyMatrix[i][j]*temp[j];
-            }
-            sum = sum%26;
-            sum+=shift;
-            plainText+=sum;
+// Function for decryption
+void decrypt(vector<vector<int>>& decryptedMatrix, const vector<vector<int>>& invKeyMatrix, const vector<vector<int>>& cipherMatrix) {
+    for (int i = 0; i < 2; i++) {
+        decryptedMatrix[i][0] = 0;
+        for (int j = 0; j < 2; j++) {
+            decryptedMatrix[i][0] += invKeyMatrix[i][j] * cipherMatrix[j][0];
         }
+        decryptedMatrix[i][0] = decryptedMatrix[i][0] % 26;
     }
-    cout << "Plain Text : " << plainText << endl;
+}
+
+// Hill Cipher encryption and decryption for 2x2 key matrix
+void HillCipher(const string& message, const string& key) {
+    vector<vector<int>> keyMatrix(2, vector<int>(2));
+    getKeyMatrix(key, keyMatrix);
+
+    // Prepare message vector (2x1)
+    vector<vector<int>> messageVector(2, vector<int>(1));
+    messageVector[0][0] = (message[0]) % 65;
+    messageVector[1][0] = (message[1]) % 65;
+
+    // Encrypt the message
+    vector<vector<int>> cipherMatrix(2, vector<int>(1));
+    encrypt(cipherMatrix, keyMatrix, messageVector);
+
+    string CipherText;
+    for (int i = 0; i < 2; i++)
+        CipherText += cipherMatrix[i][0] + 65;
+    cout << "Ciphertext: " << CipherText << endl;
+
+    // Prepare inverse key matrix for decryption
+    vector<vector<int>> invKeyMatrix(2, vector<int>(2));
+    if (!inverseKeyMatrix(keyMatrix, invKeyMatrix)) {
+        cout << "Inverse key matrix does not exist. Decryption not possible." << endl;
+        return;
+    }
+
+    // Decrypt the message
+    vector<vector<int>> decryptedMatrix(2, vector<int>(1));
+    decrypt(decryptedMatrix, invKeyMatrix, cipherMatrix);
+
+    string PlainText;
+    for (int i = 0; i < 2; i++)
+        PlainText += decryptedMatrix[i][0] + 65;
+    cout << "Decrypted Plaintext: " << PlainText << endl;
+}
+
+int main() {
+    string message = "AI"; // 2-letter message
+    string key = "BHAD";   // 4-letter key for 2x2 matrix
+
+    cout << "Message: " << message << endl;
+    cout << "Key: " << key << endl;
+
+    HillCipher(message, key);
     return 0;
 }
